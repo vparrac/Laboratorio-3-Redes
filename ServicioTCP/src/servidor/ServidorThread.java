@@ -1,8 +1,11 @@
 package servidor;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,40 +31,48 @@ public class ServidorThread extends Thread{
 	/**
 	 * String que notifica que el cliente ya esta preparado para recibir archivos
 	 */
-	private static String PREPARADO="PREPARADO";
-	private static String OK="OK";
-
+	private static String SIM="SIM";
+	/**
+	 *  String para el OK
+	 */
+	private static String ACK="ACK";
+	/**
+	 * Log del servidor
+	 */
+	 private final static Logger LOGGER = Logger.getLogger("bitacora.subnivel.Control");
 	/**
 	 * String que tiene la ruta de la carpeta donde están los archivos
 	 */
 
 	private static String sCarpAct="./data";
 
-
-
 	/**
 	 * Crea un nuevo hilo para atender al cliente
 	 * @param ss Socket por el cual  se escucha al cliente
-	 * @param id de este hilo
+	 * @param id de este hilo para el log
 	 */
 	public ServidorThread(Socket ss, int id) {
-		this.ss=ss;
+		this.ss=ss;		
 		dlg = new String("Servidor " + id + ": ");
 	}
 
+	@SuppressWarnings("resource")
 	@Override
 	public void run() {		
-		String linea;
-		System.out.println(dlg + "Empezando atencion.");
-
+		String linea; //String que se lee
+		LOGGER.log(Level.INFO, "Empezo atención");
 		try {
 			PrintWriter ac = new PrintWriter(ss.getOutputStream() , true);
-			BufferedOutputStream bos = new BufferedOutputStream(ss.getOutputStream());
 			BufferedReader dc = new BufferedReader(new InputStreamReader(ss.getInputStream()));
+			BufferedInputStream bis;
+			BufferedOutputStream bos;
+			DataOutputStream dos;
 			linea = dc.readLine();
 			String[] listado ;
-			if (!linea.equals(PREPARADO)) {
-				ac.println(OK);
+			if (!linea.equals(SIM)) {
+				LOGGER.log(Level.INFO, dlg+" El cliente está preparado, se procederá a enviar ");
+				ac.println(ACK);
+				LOGGER.log(Level.INFO, dlg+"Agradecimiento enviado");
 				File carpeta = new File(sCarpAct);
 				listado = carpeta.list();
 				String listadoArchivos="";
@@ -69,21 +80,31 @@ public class ServidorThread extends Thread{
 					listadoArchivos+=listado[i]+"/";
 				}
 				ac.println(listadoArchivos);				
+				LOGGER.log(Level.INFO, dlg+"Enviando lista de archivos al cliente");
 			}else {
 				ss.close();
-				//TODO: ESCRIBIR EN EL LOG
+				LOGGER.log(Level.WARNING, dlg+" Error estableciendo conexión con el cliente");
 			}
-			linea = dc.readLine();			
-			int in;
-			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(linea));
-			byte[] byteArray = new byte[8192];
-			while ((in = bis.read(byteArray)) != -1){
-				bos.write(byteArray,0,in);
+
+			while(true) {
+				linea = dc.readLine();		
+				LOGGER.log(Level.WARNING, dlg+"Leyendo archivo deseado, preparando archivo para el envío");
+				int in;
+				File localFile = new File( linea );				
+				bis = new BufferedInputStream(new FileInputStream(localFile)); 
+				bos = new BufferedOutputStream(ss.getOutputStream()); //Canal para enviar archivo
+				dos=new DataOutputStream(ss.getOutputStream());  //Escritor del archivo
+				dos.writeUTF(localFile.getName());
+				
+				//Envio del archivo
+				byte[] byteArray = new byte[8192];
+				while ((in = bis.read(byteArray)) != -1){
+					bos.write(byteArray,0,in);
+				}
 			}
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.log(Level.WARNING, dlg+" Error I/O, cerrando conexión... ");
 		}
 	}
 }

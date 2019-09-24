@@ -5,7 +5,6 @@ import java.net.Socket;
 /**
  * Thread que cierra la conexión si se excede el tiempo de espera
  * @author Valerie
- *
  */
 public class CronometroThread extends Thread{
 
@@ -32,10 +31,5 @@ public class CronometroThread extends Thread{
 			// TODO: handle exception
 			e.printStackTrace();
 		}
-	}
-	
-	
-	
-	
-	
+	}	
 }
