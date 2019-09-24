@@ -31,11 +31,14 @@ public class ServidorThread extends Thread{
 	/**
 	 * String que notifica que el cliente ya esta preparado para recibir archivos
 	 */
-	private static String SIM="SIM";
+	private static String SYN="SYN";
 	/**
-	 *  String para el OK
+	 *  String para el SYNACK
 	 */
+	private static String SYNACK="SYN,ACK";
+	
 	private static String ACK="ACK";
+	
 	/**
 	 * Log del servidor
 	 */
@@ -66,13 +69,14 @@ public class ServidorThread extends Thread{
 			BufferedReader dc = new BufferedReader(new InputStreamReader(ss.getInputStream()));
 			BufferedInputStream bis;
 			BufferedOutputStream bos;
-			DataOutputStream dos;
+			DataOutputStream dos;						
 			linea = dc.readLine();
 			String[] listado ;
-			if (!linea.equals(SIM)) {
+			if (!linea.equals(SYN)) {
 				LOGGER.log(Level.INFO, dlg+" El cliente está preparado, se procederá a enviar ");
-				ac.println(ACK);
+				ac.println(SYNACK);
 				LOGGER.log(Level.INFO, dlg+"Agradecimiento enviado");
+				ac.println(ACK);	
 				File carpeta = new File(sCarpAct);
 				listado = carpeta.list();
 				String listadoArchivos="";
@@ -84,9 +88,11 @@ public class ServidorThread extends Thread{
 			}else {
 				ss.close();
 				LOGGER.log(Level.WARNING, dlg+" Error estableciendo conexión con el cliente");
-			}
-
+			}			
+			CronometroThread ct;
 			while(true) {
+				ct= new CronometroThread(this.ss);
+				ct.run();
 				linea = dc.readLine();		
 				LOGGER.log(Level.WARNING, dlg+"Leyendo archivo deseado, preparando archivo para el envío");
 				int in;
@@ -95,12 +101,12 @@ public class ServidorThread extends Thread{
 				bos = new BufferedOutputStream(ss.getOutputStream()); //Canal para enviar archivo
 				dos=new DataOutputStream(ss.getOutputStream());  //Escritor del archivo
 				dos.writeUTF(localFile.getName());
-				
 				//Envio del archivo
 				byte[] byteArray = new byte[8192];
 				while ((in = bis.read(byteArray)) != -1){
 					bos.write(byteArray,0,in);
 				}
+				ct.destroy();
 			}
 
 		} catch (IOException e) {
