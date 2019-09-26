@@ -1,135 +1,116 @@
 package cliente;
-
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
- 
+
 class Cliente{
-	
+	//---------------Constantes para el protocolo----------------------
+	private static String SYN="SYN";
+	private static String SYNACK="SYN,ACK";
+	private static String ACK="ACK";
 	/**
-	 * 
-	 */
-	private ServerSocket server;
-	/**
-	 * Socket de conexi贸n con el servidor
+	 * Conexi髇 al servidor
 	 */
 	private static Socket connection;
-
-	private DataOutputStream output;
-	private BufferedInputStream bis;
-	private BufferedOutputStream bos;
 	/**
-	 * Log del servidor
+	 * Log del cliente
 	 */
-	 private final static Logger LOGGER = Logger.getLogger("bitacora.subnivel.Control");
-	 
+	private final static Logger LOGGER = Logger.getLogger("bitacora.subnivel.Control");
 	/**
-	 * Lista de archivos
+	 * Lista de archivos disponibles en el servidor
 	 */
-	private ArrayList<String> listaArchivos;
-	
-	public void descargarArchivo() {
-		
-		byte[] receivedData;
-		int in;
-		String file;
+	private static ArrayList<String> listaArchivos;
+	/**
+	 * Lector: lee la informaci髇 del Socket
+	 */
+	private static BufferedReader lector;
+	/**
+	 * Escritor: escribe informaci髇 en el socket
+	 */
+	private static PrintWriter escritor;
 
-		try{
-			//Servidor Socket en el puerto 8081
-			server = new ServerSocket( 8081 );
-			while ( true ) {
-				//Aceptar conexiones
-				connection = server.accept();
-				//Buffer de 1024 bytes
-				receivedData = new byte[1024];
-				bis = new BufferedInputStream(connection.getInputStream());
-				DataInputStream dis=new DataInputStream(connection.getInputStream());
-				//Recibimos el nombre del fichero
-				file = dis.readUTF();
-				file = file.substring(file.indexOf('\\')+1,file.length());
-				//Para guardar fichero recibido
-				bos = new BufferedOutputStream(new FileOutputStream(file));
-				while ((in = bis.read(receivedData)) != -1){
-					bos.write(receivedData,0,in);
-				}
-				bos.close();
-				dis.close();
-			}
-		}catch (Exception e ) {
-			System.err.println(e);
-		}
-	}
-	
+	/**
+	 * M閠odo principal del cliente, se hace la conexi髇 seg鷑 el protocolo	 
+	 */
+
 	public static void main (String[] args){
-		try {
-			
-			connection = null;
-			PrintWriter escritor = null;		
-			BufferedReader lector = null;
-
-
-			connection = new Socket("192.168.0.10", 8081);
-			escritor = new PrintWriter(
-					connection.getOutputStream(), true);
-			lector = new BufferedReader(new InputStreamReader(
-					connection.getInputStream()));
-			
-			BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+		try {			
+			//Pide la conexi髇 al servidor
+			connection = new Socket("localhost", 8081);
+			//Canales de lectura y escritura del socket
+			escritor = new PrintWriter(	connection.getOutputStream(), true);
+			lector = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			//Strings auxiliares
 			String fromServer;
 			String fromUser;
 			
-			//HOLA
-			fromUser = "SYN";
-			LOGGER.log(Level.INFO, "Env铆o de conexi贸n");
-			escritor.println(fromUser);
+			//---Fase 1 del protocolo, el cliente env韆 SYN-----
+			fromUser = SYN;
+			escritor.println(fromUser);			
+			LOGGER.log(Level.INFO, "Solicitando conexion");
+			
+			//---Fase 2: Se lee la respuesta del servidor----
+			fromServer = lector.readLine();
 
-			fromServer = lector.readLine();
-			System.out.println("Servidor: " + fromServer);
-			LOGGER.log(Level.INFO, "Conexi贸n extablecida");
-			if(fromServer == "ERROR"){
-				System.out.println("fall贸");
-				escritor.close();
-				lector.close();
-				stdIn.close();
+			//Si la respuesta del servidor es la esperada seg鷑 el protocolo
+			if(fromServer.equalsIgnoreCase(SYNACK)) {
+				//Se es
+				LOGGER.log(Level.INFO, "Conexi髇 extablecida");
+				
+				// -----Fase 3: Se env韆 el agradecimiento del protocolo-----
+				fromUser=ACK;
+				escritor.println(fromUser);	
+				
+				//------Fase 4: Se recibe la lista de archivos del servidor
+				fromServer = lector.readLine();
+				String[] lista = fromServer.split("/");
+				for (int i = 0; i < lista.length; i++) {
+					listaArchivos.add(lista[i]);
+				}
+				//-----Fase 5: Se escoje un archivo
+				System.out.println("Escoja el archivo");
+				System.out.println(Arrays.toString(lista));
+				
+				BufferedReader br= new BufferedReader(new InputStreamReader(System.in));
+				String seleccionUsuario=br.readLine();
+				
+				fromUser=seleccionUsuario;
+				escritor.println(fromUser);
+				
+				
+				
 			}
 			
-			fromServer = lector.readLine();
-			
-			System.out.println("Servidor: " + fromServer);
-			
-			if(fromServer == "ERROR"){
-				System.out.println("fall贸");
-				escritor.close();
-				lector.close();
-				stdIn.close();
-			}
-			
-			fromUser = "ACK";
-			System.out.println("Cliente: " + fromUser);
-			escritor.println(fromUser);
-			
-			fromUser = escogerArchivo();
-			System.out.println("Cliente: " + fromUser);
-			escritor.println(fromUser);
-			
-			
+		
+		} catch (IOException e) {		
+			e.printStackTrace();
+		}
+	}
+	
+	
+	private static void cerrarTodo() {					
+		try {
+			connection.close();
 			escritor.close();
 			lector.close();
-
-			stdIn.close();
-			connection.close();
-			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+	}
+	
+	
+	private void descargarArchivo() {
+
+
+
 	}
 
-	public static String escogerArchivo() {
-		// TODO Auto-generated method stub
-		return null;
+
+	public static void escogerArchivo(String archivo) {
+		
 	}
 }

@@ -72,19 +72,24 @@ public class ServidorThread extends Thread{
 			DataOutputStream dos;						
 			linea = dc.readLine();
 			String[] listado ;
-			if (!linea.equals(SYN)) {
+			if (linea.equals(SYN)) {
 				LOGGER.log(Level.INFO, dlg+" El cliente está preparado, se procederá a enviar ");
+				
 				ac.println(SYNACK);
 				LOGGER.log(Level.INFO, dlg+"Agradecimiento enviado");
-				ac.println(ACK);	
-				File carpeta = new File(sCarpAct);
-				listado = carpeta.list();
-				String listadoArchivos="";
-				for (int i = 0; i < listado.length; i++) {
-					listadoArchivos+=listado[i]+"/";
-				}
-				ac.println(listadoArchivos);				
-				LOGGER.log(Level.INFO, dlg+"Enviando lista de archivos al cliente");
+				
+				linea = dc.readLine();
+				if(linea.equals(ACK)) {
+					File carpeta = new File(sCarpAct);
+					listado = carpeta.list();
+					String listadoArchivos="";
+					for (int i = 0; i < listado.length; i++) {
+						listadoArchivos+=listado[i]+"/";
+					}
+					ac.println(listadoArchivos);				
+					LOGGER.log(Level.INFO, dlg+"Enviando lista de archivos al cliente");
+				}				
+				
 			}else {
 				ss.close();
 				LOGGER.log(Level.WARNING, dlg+" Error estableciendo conexión con el cliente");
@@ -93,9 +98,12 @@ public class ServidorThread extends Thread{
 			while(true) {
 				ct= new CronometroThread(this.ss);
 				ct.run();
-				linea = dc.readLine();		
-				LOGGER.log(Level.WARNING, dlg+"Leyendo archivo deseado, preparando archivo para el envío");
+				linea = dc.readLine();
+				ct.destroy();
+				
+				LOGGER.log(Level.WARNING, dlg+"  Leyendo archivo deseado, preparando archivo para el envío");
 				int in;
+				
 				File localFile = new File( linea );				
 				bis = new BufferedInputStream(new FileInputStream(localFile)); 
 				bos = new BufferedOutputStream(ss.getOutputStream()); //Canal para enviar archivo
@@ -106,7 +114,7 @@ public class ServidorThread extends Thread{
 				while ((in = bis.read(byteArray)) != -1){
 					bos.write(byteArray,0,in);
 				}
-				ct.destroy();
+				
 			}
 
 		} catch (IOException e) {
