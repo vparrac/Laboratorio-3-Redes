@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 public class Servidor {	
 	private static ServerSocket ss;	
-	private static final String MAESTRO = "SERVIDOR: ";
 	private static final int PUERTO=8081;
 	private final static Logger LOGGER = Logger.getLogger("bitacora.subnivel.Control");
 	public static void main(String[] args) {

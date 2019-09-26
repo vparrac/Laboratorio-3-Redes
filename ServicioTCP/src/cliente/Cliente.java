@@ -31,7 +31,10 @@ class Cliente{
 	 * Escritor: escribe información en el socket
 	 */
 	private static PrintWriter escritor;
-
+	/**
+	 *  Escritor auxiliar
+	 */
+	private static BufferedInputStream bis;
 	/**
 	 * Método principal del cliente, se hace la conexión según el protocolo	 
 	 */
@@ -46,12 +49,12 @@ class Cliente{
 			//Strings auxiliares
 			String fromServer;
 			String fromUser;
-			
+
 			//---Fase 1 del protocolo, el cliente envía SYN-----
 			fromUser = SYN;
 			escritor.println(fromUser);			
 			LOGGER.log(Level.INFO, "Solicitando conexion");
-			
+
 			//---Fase 2: Se lee la respuesta del servidor----
 			fromServer = lector.readLine();
 
@@ -59,11 +62,11 @@ class Cliente{
 			if(fromServer.equalsIgnoreCase(SYNACK)) {
 				//Se es
 				LOGGER.log(Level.INFO, "Conexión extablecida");
-				
+
 				// -----Fase 3: Se envía el agradecimiento del protocolo-----
 				fromUser=ACK;
 				escritor.println(fromUser);	
-				
+
 				//------Fase 4: Se recibe la lista de archivos del servidor
 				fromServer = lector.readLine();
 				String[] lista = fromServer.split("/");
@@ -73,24 +76,36 @@ class Cliente{
 				//-----Fase 5: Se escoje un archivo
 				System.out.println("Escoja el archivo");
 				System.out.println(Arrays.toString(lista));
-				
+
 				BufferedReader br= new BufferedReader(new InputStreamReader(System.in));
 				String seleccionUsuario=br.readLine();
-				
+
 				fromUser=seleccionUsuario;
 				escritor.println(fromUser);
-				
-				
-				
+
+				//----Fase 6: recibir archivo
+				byte[] receivedData = new byte[1024];
+				bis = new BufferedInputStream(connection.getInputStream());
+				DataInputStream dis=new DataInputStream(connection.getInputStream());
+				String file=dis.readUTF();
+				file = file.substring(file.indexOf('\\')+1,file.length());
+				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+				int in;
+				while ((in = bis.read(receivedData)) != -1){
+					bos.write(receivedData,0,in);
+				}
+				bos.close();
+				dis.close();
+
 			}
-			
-		
+
+
 		} catch (IOException e) {		
 			e.printStackTrace();
 		}
 	}
-	
-	
+
+
 	private static void cerrarTodo() {					
 		try {
 			connection.close();
@@ -101,8 +116,8 @@ class Cliente{
 			e.printStackTrace();
 		}
 	}
-	
-	
+
+
 	private void descargarArchivo() {
 
 
@@ -111,6 +126,6 @@ class Cliente{
 
 
 	public static void escogerArchivo(String archivo) {
-		
+
 	}
 }
