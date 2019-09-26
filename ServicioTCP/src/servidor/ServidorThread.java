@@ -114,6 +114,7 @@ public class ServidorThread extends Thread{
 				while ((in = bis.read(byteArray)) != -1){
 					bos.write(byteArray,0,in);
 				}
+				bos.close();
 				
 			}
 

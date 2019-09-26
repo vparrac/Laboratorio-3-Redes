@@ -50,6 +50,8 @@ class Cliente{
 			String fromServer;
 			String fromUser;
 
+			//Inicialización lista archivos
+			listaArchivos= new ArrayList<>();
 			//---Fase 1 del protocolo, el cliente envía SYN-----
 			fromUser = SYN;
 			escritor.println(fromUser);			
@@ -70,6 +72,7 @@ class Cliente{
 				//------Fase 4: Se recibe la lista de archivos del servidor
 				fromServer = lector.readLine();
 				String[] lista = fromServer.split("/");
+				System.out.println(fromServer);
 				for (int i = 0; i < lista.length; i++) {
 					listaArchivos.add(lista[i]);
 				}
@@ -82,20 +85,24 @@ class Cliente{
 
 				fromUser=seleccionUsuario;
 				escritor.println(fromUser);
-
+				
 				//----Fase 6: recibir archivo
-				byte[] receivedData = new byte[1024];
+				byte[] receivedData = new byte[8192];
 				bis = new BufferedInputStream(connection.getInputStream());
+				
 				DataInputStream dis=new DataInputStream(connection.getInputStream());
 				String file=dis.readUTF();
 				file = file.substring(file.indexOf('\\')+1,file.length());
+				System.out.println(file.substring(file.indexOf('\\')+1,file.length()));
 				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
-				int in;
-				while ((in = bis.read(receivedData)) != -1){
-					bos.write(receivedData,0,in);
+				System.out.println("Sigue?");
+				int in;				
+				while ((in = bis.read(receivedData)) != -1){					
+					bos.write(receivedData,0,in);									
 				}
 				bos.close();
 				dis.close();
+				
 
 			}
 
