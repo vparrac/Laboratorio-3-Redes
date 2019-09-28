@@ -2,11 +2,10 @@ package cliente;
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class Cliente{
+public class Cliente{
 	//---------------Constantes para el protocolo----------------------
 	private static String SYN="SYN";
 	private static String SYNACK="SYN,ACK";
@@ -47,10 +46,7 @@ class Cliente{
 			lector = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			listaArchivos= new ArrayList<>();			
 			String fromServer;
-
 			String fromUser;			
-
-			
 
 			//Inicialización lista archivos
 			listaArchivos= new ArrayList<>();
@@ -70,35 +66,6 @@ class Cliente{
 				for (int i = 0; i < lista.length; i++) {
 					listaArchivos.add(lista[i]);
 				}
-
-				//-----Fase 5: Se escoje un archivo
-				System.out.println("Escoja el archivo");
-				System.out.println(Arrays.toString(lista));
-
-				BufferedReader br= new BufferedReader(new InputStreamReader(System.in));
-				String seleccionUsuario=br.readLine();
-
-				fromUser=seleccionUsuario;
-				escritor.println(fromUser);
-				
-				//----Fase 6: recibir archivo
-				byte[] receivedData = new byte[8192];
-				bis = new BufferedInputStream(connection.getInputStream());
-				
-				DataInputStream dis=new DataInputStream(connection.getInputStream());
-				String file=dis.readUTF();
-				file = file.substring(file.indexOf('\\')+1,file.length());
-				System.out.println(file.substring(file.indexOf('\\')+1,file.length()));
-				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
-				System.out.println("Sigue?");
-				int in;				
-				while ((in = bis.read(receivedData)) != -1){					
-					bos.write(receivedData,0,in);									
-				}
-				bos.close();
-				dis.close();
-				
-
 			}
 		}
 		catch (IOException e) {
@@ -123,29 +90,33 @@ class Cliente{
 	}
 
 
-	public void descargarArhivo(String archivo) {
+	public void seleccionarYDescargarArchivo(String archivo) {
 		try {
-			BufferedReader br= new BufferedReader(new InputStreamReader(System.in));
-			String seleccionUsuario=br.readLine();	
-			escritor.println(seleccionUsuario);
+			//-----Fase 5: Se escoje un archivo
+			escritor.println(archivo);			
+			//----Fase 6: recibir archivo
 			byte[] receivedData = new byte[8192];
-			bis = new BufferedInputStream(connection.getInputStream());
+			bis = new BufferedInputStream(connection.getInputStream());			
 			DataInputStream dis=new DataInputStream(connection.getInputStream());
 			String file=dis.readUTF();
 			file = file.substring(file.indexOf('\\')+1,file.length());
 			System.out.println(file.substring(file.indexOf('\\')+1,file.length()));
-			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("./data/"+file));
 			System.out.println("Sigue?");
 			int in;				
 			while ((in = bis.read(receivedData)) != -1){					
 				bos.write(receivedData,0,in);									
 			}
 			bos.close();
-			dis.close();
+			dis.close();							
 		}
-		catch(Exception e) {
-			
+		catch(Exception iOException) {
+			//TODO LOG
 		}
+	}
+	
+	public ArrayList<String> getListaArchivos() {
+		return listaArchivos;
 	}
 
 }
