@@ -17,8 +17,11 @@ public class Servidor {
 			int idThread = 0;
 			
 			while(true) {
+				
 				Socket sc = ss.accept();
-				new ServidorThread(sc, idThread);
+				System.out.println("Aceptando cliente");
+				ServidorThread ayudante=new ServidorThread(sc, idThread);
+				ayudante.start();
 			}
 			
 			

@@ -1,4 +1,5 @@
 package servidor;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -86,7 +87,8 @@ public class ServidorThread extends Thread{
 					for (int i = 0; i < listado.length; i++) {
 						listadoArchivos+=listado[i]+"/";
 					}
-					ac.println(listadoArchivos);				
+					ac.println(listadoArchivos);
+					System.out.println(listadoArchivos);
 					LOGGER.log(Level.INFO, dlg+"Enviando lista de archivos al cliente");
 				}				
 				
@@ -96,29 +98,34 @@ public class ServidorThread extends Thread{
 			}			
 			CronometroThread ct;
 			while(true) {
-				ct= new CronometroThread(this.ss);
-				ct.run();
+				//ct= new CronometroThread(this.ss);
+				//ct.run();
 				linea = dc.readLine();
-				ct.destroy();
+				//ct.destroy();
 				
 				LOGGER.log(Level.WARNING, dlg+"  Leyendo archivo deseado, preparando archivo para el envío");
 				int in;
 				
-				File localFile = new File( linea );				
+				File localFile = new File( "./data/"+linea );				
 				bis = new BufferedInputStream(new FileInputStream(localFile)); 
 				bos = new BufferedOutputStream(ss.getOutputStream()); //Canal para enviar archivo
 				dos=new DataOutputStream(ss.getOutputStream());  //Escritor del archivo
+				System.out.println(localFile.getAbsolutePath());
 				dos.writeUTF(localFile.getName());
+				System.out.println("Escrito UTF");
 				//Envio del archivo
 				byte[] byteArray = new byte[8192];
 				while ((in = bis.read(byteArray)) != -1){
+					System.out.println(in==-1);
 					bos.write(byteArray,0,in);
 				}
+				bos.close();
 				
 			}
 
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING, dlg+" Error I/O, cerrando conexión... ");
+			e.printStackTrace();
 		}
 	}
 }

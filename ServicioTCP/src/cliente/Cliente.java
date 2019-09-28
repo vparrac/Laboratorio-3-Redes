@@ -14,118 +14,101 @@ class Cliente{
 	/**
 	 * Conexión al servidor
 	 */
-	private static Socket connection;
+	private Socket connection;
 	/**
 	 * Log del cliente
 	 */
-	private final static Logger LOGGER = Logger.getLogger("bitacora.subnivel.Control");
+	private final Logger LOGGER = Logger.getLogger("bitacora.subnivel.Control");
 	/**
 	 * Lista de archivos disponibles en el servidor
 	 */
-	private static ArrayList<String> listaArchivos;
+	private ArrayList<String> listaArchivos;
 	/**
 	 * Lector: lee la información del Socket
 	 */
-	private static BufferedReader lector;
+	private BufferedReader lector;
 	/**
 	 * Escritor: escribe información en el socket
 	 */
-	private static PrintWriter escritor;
+	private PrintWriter escritor;
 	/**
 	 *  Escritor auxiliar
 	 */
 	private static BufferedInputStream bis;
+
 	/**
-	 * Método principal del cliente, se hace la conexión según el protocolo	 
+	 * Constructor de la clase cliente, inicializa los atributos del cliente
 	 */
 
-	public static void main (String[] args){
-		try {			
-			//Pide la conexión al servidor
+	public Cliente() {		
+		try {
 			connection = new Socket("localhost", 8081);
-			//Canales de lectura y escritura del socket
 			escritor = new PrintWriter(	connection.getOutputStream(), true);
 			lector = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			//Strings auxiliares
+			listaArchivos= new ArrayList<>();			
 			String fromServer;
-			String fromUser;
-
-			//---Fase 1 del protocolo, el cliente envía SYN-----
+			String fromUser;			
 			fromUser = SYN;
 			escritor.println(fromUser);			
 			LOGGER.log(Level.INFO, "Solicitando conexion");
-
-			//---Fase 2: Se lee la respuesta del servidor----
 			fromServer = lector.readLine();
-
-			//Si la respuesta del servidor es la esperada según el protocolo
-			if(fromServer.equalsIgnoreCase(SYNACK)) {
-				//Se es
+			if(fromServer.equalsIgnoreCase(SYNACK)) {				
 				LOGGER.log(Level.INFO, "Conexión extablecida");
-
-				// -----Fase 3: Se envía el agradecimiento del protocolo-----
 				fromUser=ACK;
 				escritor.println(fromUser);	
-
-				//------Fase 4: Se recibe la lista de archivos del servidor
 				fromServer = lector.readLine();
 				String[] lista = fromServer.split("/");
+				System.out.println(fromServer);
 				for (int i = 0; i < lista.length; i++) {
 					listaArchivos.add(lista[i]);
 				}
-				//-----Fase 5: Se escoje un archivo
-				System.out.println("Escoja el archivo");
-				System.out.println(Arrays.toString(lista));
-
-				BufferedReader br= new BufferedReader(new InputStreamReader(System.in));
-				String seleccionUsuario=br.readLine();
-
-				fromUser=seleccionUsuario;
-				escritor.println(fromUser);
-
-				//----Fase 6: recibir archivo
-				byte[] receivedData = new byte[1024];
-				bis = new BufferedInputStream(connection.getInputStream());
-				DataInputStream dis=new DataInputStream(connection.getInputStream());
-				String file=dis.readUTF();
-				file = file.substring(file.indexOf('\\')+1,file.length());
-				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
-				int in;
-				while ((in = bis.read(receivedData)) != -1){
-					bos.write(receivedData,0,in);
-				}
-				bos.close();
-				dis.close();
-
 			}
-
-
-		} catch (IOException e) {		
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
+	public static void main (String[] args){
+		Cliente cliente = new Cliente();
+	} 
 
-	private static void cerrarTodo() {					
+
+	public void cerrarTodo() {					
 		try {
 			connection.close();
 			escritor.close();
 			lector.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			LOGGER.log(Level.WARNING, "Se ha productido un error "+ e.getMessage());
 			e.printStackTrace();
 		}
 	}
 
 
-	private void descargarArchivo() {
-
-
-
+	public void descargarArhivo(String archivo) {
+		try {
+			BufferedReader br= new BufferedReader(new InputStreamReader(System.in));
+			String seleccionUsuario=br.readLine();	
+			escritor.println(seleccionUsuario);
+			byte[] receivedData = new byte[8192];
+			bis = new BufferedInputStream(connection.getInputStream());
+			DataInputStream dis=new DataInputStream(connection.getInputStream());
+			String file=dis.readUTF();
+			file = file.substring(file.indexOf('\\')+1,file.length());
+			System.out.println(file.substring(file.indexOf('\\')+1,file.length()));
+			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+			System.out.println("Sigue?");
+			int in;				
+			while ((in = bis.read(receivedData)) != -1){					
+				bos.write(receivedData,0,in);									
+			}
+			bos.close();
+			dis.close();
+		}
+		catch(Exception e) {
+			
+		}
 	}
 
-
-	public static void escogerArchivo(String archivo) {
-
-	}
 }
