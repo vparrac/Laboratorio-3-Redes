@@ -47,7 +47,15 @@ class Cliente{
 			lector = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			listaArchivos= new ArrayList<>();			
 			String fromServer;
+
 			String fromUser;			
+
+			
+
+			//Inicialización lista archivos
+			listaArchivos= new ArrayList<>();
+			//---Fase 1 del protocolo, el cliente envía SYN-----
+
 			fromUser = SYN;
 			escritor.println(fromUser);			
 			LOGGER.log(Level.INFO, "Solicitando conexion");
@@ -62,6 +70,35 @@ class Cliente{
 				for (int i = 0; i < lista.length; i++) {
 					listaArchivos.add(lista[i]);
 				}
+
+				//-----Fase 5: Se escoje un archivo
+				System.out.println("Escoja el archivo");
+				System.out.println(Arrays.toString(lista));
+
+				BufferedReader br= new BufferedReader(new InputStreamReader(System.in));
+				String seleccionUsuario=br.readLine();
+
+				fromUser=seleccionUsuario;
+				escritor.println(fromUser);
+				
+				//----Fase 6: recibir archivo
+				byte[] receivedData = new byte[8192];
+				bis = new BufferedInputStream(connection.getInputStream());
+				
+				DataInputStream dis=new DataInputStream(connection.getInputStream());
+				String file=dis.readUTF();
+				file = file.substring(file.indexOf('\\')+1,file.length());
+				System.out.println(file.substring(file.indexOf('\\')+1,file.length()));
+				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+				System.out.println("Sigue?");
+				int in;				
+				while ((in = bis.read(receivedData)) != -1){					
+					bos.write(receivedData,0,in);									
+				}
+				bos.close();
+				dis.close();
+				
+
 			}
 		}
 		catch (IOException e) {
