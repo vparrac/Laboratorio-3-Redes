@@ -85,7 +85,7 @@ public class Cliente{
 
 			//Inicializacion lista archivos
 			listaArchivos= new ArrayList<>();
-			//---Fase 1 del protocolo, el cliente envía SYN-----
+			//---Fase 1 del protocolo, el cliente envia SYN-----
 
 			fromUser = SYN;
 			escritor.println(fromUser);			
