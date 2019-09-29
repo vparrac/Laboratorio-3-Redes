@@ -2,6 +2,7 @@ package cliente;
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -93,22 +94,33 @@ public class Cliente{
 	public void seleccionarYDescargarArchivo(String archivo) {
 		try {
 			//-----Fase 5: Se escoje un archivo
-			escritor.println(archivo);			
+			escritor.println(archivo);		
+			System.out.println("Escrito: "+archivo);
 			//----Fase 6: recibir archivo
-			byte[] receivedData = new byte[8192];
-			bis = new BufferedInputStream(connection.getInputStream());			
+			byte[] receivedData = new byte[1024];
+			bis = new BufferedInputStream(connection.getInputStream());		
+			System.out.println("La conexión esta cerrada? "+connection.isClosed());
 			DataInputStream dis=new DataInputStream(connection.getInputStream());
-			String file=dis.readUTF();
+			String file=dis.readUTF();			
 			file = file.substring(file.indexOf('\\')+1,file.length());
 			System.out.println(file.substring(file.indexOf('\\')+1,file.length()));
-			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("./data/"+file));
-			System.out.println("Sigue?");
+			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+			
 			int in;				
-			while ((in = bis.read(receivedData)) != -1){					
-				bos.write(receivedData,0,in);									
-			}
+			int numeroPaquetes=Integer.parseInt(lector.readLine());
+				
+			System.out.println(numeroPaquetes);
+			
+			while (numeroPaquetes-->0){				
+				System.out.println(numeroPaquetes);
+				in = bis.read(receivedData);		
+				System.err.println(in);
+				bos.write(receivedData,0,in);
+				if(in!=1024) {
+					break;
+				}
+			}						
 			bos.close();
-			dis.close();							
 		}
 		catch(Exception iOException) {
 			//TODO LOG

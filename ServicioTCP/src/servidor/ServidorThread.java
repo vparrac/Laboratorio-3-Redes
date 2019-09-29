@@ -96,12 +96,14 @@ public class ServidorThread extends Thread{
 				ss.close();
 				LOGGER.log(Level.WARNING, dlg+" Error estableciendo conexión con el cliente");
 			}			
-			CronometroThread ct;
+			//CronometroThread ct;
 			while(true) {
 				//ct= new CronometroThread(this.ss);
 				//ct.run();
+				System.out.println("Pasa por aqui");
+				System.out.println("Esta cerrada  ?"+ss.isClosed());
 				linea = dc.readLine();
-				//ct.destroy();
+				//ct.destroy();x|
 				
 				LOGGER.log(Level.WARNING, dlg+"  Leyendo archivo deseado, preparando archivo para el envío");
 				int in;
@@ -114,12 +116,26 @@ public class ServidorThread extends Thread{
 				dos.writeUTF(localFile.getName());
 				System.out.println("Escrito UTF");
 				//Envio del archivo
-				byte[] byteArray = new byte[8192];
+				
+				
+				long paquetes=localFile.length()/1024;
+				
+				ac.println(paquetes);
+				
+				
+				byte[] byteArray = new byte[1024];
+				int inat =0;
 				while ((in = bis.read(byteArray)) != -1){
-					System.out.println(in==-1);
 					bos.write(byteArray,0,in);
+					System.out.println(inat++);
+					System.err.println(in);
+					
 				}
-				bos.close();
+				//System.out.println(inant+" IN");
+				//bos.write(new byte[inant],0,inant);
+				//System.out.println("ByteArray:"+ Arrays.toString(byteArray));
+				bos.flush();
+				//bos.close();
 				
 			}
 
