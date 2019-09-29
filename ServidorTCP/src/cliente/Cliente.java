@@ -107,9 +107,6 @@ public class Cliente{
 		}
 	}
 
-	public static void main (String[] args){
-		Cliente cliente = new Cliente();
-	} 
 
 
 	public void cerrarTodo() {					
@@ -197,6 +194,12 @@ public class Cliente{
 
 	public ArrayList<String> getListaArchivos() {
 		return listaArchivos;
+	}
+	
+	public static void main(String[] args) {
+		Cliente cliente=new Cliente();
+		cliente.seleccionarYDescargarArchivo(cliente.getListaArchivos().get(0));
+		cliente.cerrarTodo();
 	}
 
 }
