@@ -19,14 +19,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ClienteJM{
-	//---------------Constantes para el protocolo----------------------
+	
 	private static String SYN="SYN";
 	private static String SYNACK="SYN,ACK";
 	private static String ACK="ACK";
 	
-	/**
-	 * Conexión al servidor
-	 */
 	private Socket connection;
 	/**
 	 * Log del cliente
@@ -37,11 +34,11 @@ public class ClienteJM{
 	 */
 	private ArrayList<String> listaArchivos;
 	/**
-	 * Lector: lee la información del Socket
+	 * Lector: lee la informacion del Socket
 	 */
 	private BufferedReader lector;
 	/**
-	 * Escritor: escribe información en el socket
+	 * Escritor: escribe informacion en el socket
 	 */
 	private PrintWriter escritor;
 	/**
@@ -77,16 +74,15 @@ public class ClienteJM{
 			String fromServer;
 			String fromUser;			
 
-			//Inicialización lista archivos
-			listaArchivos= new ArrayList<>();
-			//---Fase 1 del protocolo, el cliente envía SYN-----
+					listaArchivos= new ArrayList<>();
+			
 
 			fromUser = SYN;
 			escritor.println(fromUser);			
 			LOGGER.log(Level.INFO, "Solicitando conexion");
 			fromServer = lector.readLine();
 			if(fromServer.equalsIgnoreCase(SYNACK)) {				
-				LOGGER.log(Level.INFO, "Conexión extablecida");
+				LOGGER.log(Level.INFO, "Conexion extablecida");
 				fromUser=ACK;
 				escritor.println(fromUser);	
 				fromServer = lector.readLine();
@@ -134,7 +130,7 @@ public class ClienteJM{
 
 			int in;				
 			int numeroPaquetes=Integer.parseInt(lector.readLine());
-			log.println("Número de paquetes esperado: "+numeroPaquetes);
+			log.println("Numero de paquetes esperado: "+numeroPaquetes);
 			String integridad=lector.readLine();
 			long tiempoInicial=Long.parseLong(lector.readLine());			
 			MessageDigest messageDigest = MessageDigest.getInstance("SHA");
@@ -156,8 +152,8 @@ public class ClienteJM{
 //				numeroBytesRecibidos+=in;				
 //
 //			}
-			log.println("Número de paquetes recibido: "+numeroPaquetesRecibidos);
-			log.println("Número de bytes recibidos: "+ numeroBytesRecibidos);
+			log.println("Numero de paquetes recibido: "+numeroPaquetesRecibidos);
+			log.println("Numero de bytes recibidos: "+ numeroBytesRecibidos);
 			byte[] resumen = messageDigest.digest();			
 			String s="";
 			for (int i = 0; i < resumen.length; i++) {
