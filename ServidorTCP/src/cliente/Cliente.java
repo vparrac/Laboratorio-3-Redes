@@ -76,7 +76,7 @@ public class Cliente{
 			log= new PrintWriter(bw);
 			log.println(fechaActual.toString());
 			tiempoTransferencia=0;
-			connection = new Socket("localhost", 8081);
+			connection = new Socket("3.91.134.242", 8081);
 			escritor = new PrintWriter(	connection.getOutputStream(), true);
 			lector = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			listaArchivos= new ArrayList<>();			
